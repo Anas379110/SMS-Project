@@ -1,0 +1,109 @@
+erDiagram
+    User ||--|| Role : has
+    Guardian ||--o{ Student : "parent of"
+    Student ||--o{ Enrollment : has
+    ClassRoom ||--o{ Enrollment : contains
+    ClassRoom ||--o{ TeacherAssignment : "taught in"
+    User ||--o{ TeacherAssignment : "teacher (User)"
+    Subject ||--o{ TeacherAssignment : "subject taught"
+    Student ||--o{ AttendanceRecord : has
+    ClassRoom ||--o{ AttendanceRecord : "recorded in"
+    Student ||--o{ Grade : has
+    Subject ||--o{ Grade : "grade for"
+    ClassRoom ||--o{ ScheduleEntry : has
+    Subject ||--o{ ScheduleEntry : "scheduled subject"
+    Student ||--o{ Invoice : receives
+    Invoice ||--o{ Payment : "paid via"
+    FeeStructure ||--o{ Invoice : "based on"
+    User ||--o{ Notification : receives
+
+    User {
+        string id PK
+        string email UK
+        string passwordHash
+        string roleId FK
+        datetime createdAt
+    }
+    Guardian {
+        string id PK
+        string userId FK
+        string fullName
+        string phone
+    }
+    Student {
+        string id PK
+        string guardianId FK
+        string fullName
+        date birthDate
+        string status
+    }
+    ClassRoom {
+        string id PK
+        string name
+        string academicYear
+    }
+    Enrollment {
+        string id PK
+        string studentId FK
+        string classRoomId FK
+    }
+    Subject {
+        string id PK
+        string name
+    }
+    TeacherAssignment {
+        string id PK
+        string teacherUserId FK
+        string classRoomId FK
+        string subjectId FK
+    }
+    AttendanceRecord {
+        string id PK
+        string studentId FK
+        string classRoomId FK
+        date date
+        string status
+    }
+    Grade {
+        string id PK
+        string studentId FK
+        string subjectId FK
+        float score
+        string term
+    }
+    ScheduleEntry {
+        string id PK
+        string classRoomId FK
+        string subjectId FK
+        string dayOfWeek
+        string startTime
+        string endTime
+    }
+    FeeStructure {
+        string id PK
+        string label
+        float amount
+        string academicYear
+    }
+    Invoice {
+        string id PK
+        string studentId FK
+        string feeStructureId FK
+        float amount
+        string status
+        date dueDate
+    }
+    Payment {
+        string id PK
+        string invoiceId FK
+        float amount
+        string method
+        date paidAt
+    }
+    Notification {
+        string id PK
+        string userId FK
+        string type
+        string message
+        boolean isRead
+    }

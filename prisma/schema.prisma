@@ -1,0 +1,255 @@
+// prisma/schema.prisma
+// راجع docs/database/DATABASE.md و docs/database/ERD.mmd قبل أي تعديل
+// لا Tenant ID — هذه القاعدة خاصة بمدرسة واحدة فقط (True White-label)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  PARENT
+  STUDENT
+  ACCOUNTANT
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  PAYTABS
+  STRIPE
+  MANUAL
+}
+
+/// حساب دخول عام — إعداد المرحلة الأولى (Auth Module)
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  fullName     String
+  isActive     Boolean  @default(true)
+  // راجع DECISIONS.md — حماية Brute Force: قفل مؤقت بعد محاولات فاشلة متكررة
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  // راجع DECISIONS.md — Password Reset: نخزّن Hash أحادي الاتجاه (SHA-256) للرمز
+  // لا الرمز نفسه، لإمكانية البحث المباشر (Deterministic) عند التأكيد، مع صلاحية
+  // زمنية قصيرة (ساعة واحدة).
+  resetTokenHash      String?
+  resetTokenExpiresAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // علاقات تُفعَّل تدريجياً بالـ Increments القادمة (Students/Classes/Attendance...)
+  guardianProfile Guardian?
+  notifications   Notification[]
+  teacherAssignments TeacherAssignment[]
+
+  @@index([role])
+}
+
+/// إعدادات المدرسة — Branding (Increment الأول أيضاً)
+/// صف واحد فقط بكل قاعدة بيانات (نسخة واحدة = مدرسة واحدة)
+model SchoolSettings {
+  id           String   @id @default(cuid())
+  schoolName   String
+  logoUrl      String?
+  primaryColor String   @default("#1d4ed8")
+  country      String // مثال: SA, AE, IQ, SY, GB, US — يحدد مسار الدفع (راجع DECISIONS.md)
+  defaultLocale String  @default("ar")
+  updatedAt    DateTime @updatedAt
+}
+
+/// ولي الأمر — يُفعَّل بالكامل بـ Increment الطلاب/الفصول القادم، معرَّف هنا مسبقاً لأنه مرتبط بـUser
+model Guardian {
+  id       String    @id @default(cuid())
+  userId   String    @unique
+  user     User      @relation(fields: [userId], references: [id])
+  phone    String?
+  students Student[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// الطالب — Increment القادم (Academic Module)، معرَّف بالـ Schema من الآن لثبات العلاقات لاحقاً
+model Student {
+  id          String    @id @default(cuid())
+  userId      String?   @unique // ربط اختياري بحساب دخول خاص بالطالب نفسه (دور STUDENT — راجع RBAC)
+  guardianId  String?
+  guardian    Guardian? @relation(fields: [guardianId], references: [id])
+  fullName    String
+  birthDate   DateTime?
+  status      String    @default("active") // active | archived (Soft Delete — راجع CLAUDE.md القسم 14)
+
+  attendanceRecords AttendanceRecord[]
+  grades            Grade[]
+  invoices          Invoice[]
+  enrollments       Enrollment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([guardianId])
+}
+
+model ClassRoom {
+  id           String   @id @default(cuid())
+  name         String
+  academicYear String
+
+  enrollments        Enrollment[]
+  attendanceRecords  AttendanceRecord[]
+  teacherAssignments TeacherAssignment[]
+  scheduleEntries    ScheduleEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// ربط معلم↔فصل↔مادة — أساس التحقق من "هل هذا المعلم مسؤول فعلياً عن هذا الطالب؟"
+/// (راجع src/modules/auth/rbac.ts — canAccessStudent)
+model TeacherAssignment {
+  id            String    @id @default(cuid())
+  teacherUserId String
+  teacher       User      @relation(fields: [teacherUserId], references: [id])
+  classRoomId   String
+  classRoom     ClassRoom @relation(fields: [classRoomId], references: [id])
+  subjectId     String
+  subject       Subject   @relation(fields: [subjectId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([teacherUserId, classRoomId, subjectId])
+  @@index([classRoomId])
+}
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id])
+  classRoomId String
+  classRoom   ClassRoom @relation(fields: [classRoomId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, classRoomId])
+}
+
+model Subject {
+  id    String  @id @default(cuid())
+  name  String
+  grades Grade[]
+  teacherAssignments TeacherAssignment[]
+  scheduleEntries ScheduleEntry[]
+}
+
+model AttendanceRecord {
+  id          String           @id @default(cuid())
+  studentId   String
+  student     Student          @relation(fields: [studentId], references: [id])
+  classRoomId String
+  classRoom   ClassRoom        @relation(fields: [classRoomId], references: [id])
+  date        DateTime
+  status      AttendanceStatus
+
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, classRoomId, date])
+  @@index([studentId, date])
+}
+
+model Grade {
+  id        String  @id @default(cuid())
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  score     Float
+  term      String
+
+  createdAt DateTime @default(now())
+
+  @@index([studentId])
+}
+
+/// حصة بالجدول الدراسي — عرض فقط بهذا الإصدار (راجع SCOPE.md، لا محرك جدولة آلي)
+model ScheduleEntry {
+  id          String    @id @default(cuid())
+  classRoomId String
+  classRoom   ClassRoom @relation(fields: [classRoomId], references: [id])
+  subjectId   String
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  dayOfWeek   String // SUNDAY..SATURDAY — راجع src/modules/schedule/schema.ts
+  startTime   String // HH:MM
+  endTime     String // HH:MM
+
+  createdAt DateTime @default(now())
+
+  @@index([classRoomId, dayOfWeek])
+}
+
+model FeeStructure {
+  id           String    @id @default(cuid())
+  label        String
+  amount       Float
+  academicYear String
+  invoices     Invoice[]
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  studentId      String
+  student        Student       @relation(fields: [studentId], references: [id])
+  feeStructureId String
+  feeStructure   FeeStructure  @relation(fields: [feeStructureId], references: [id])
+  amount         Float
+  status         InvoiceStatus @default(PENDING)
+  dueDate        DateTime
+  payments       Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  invoiceId String
+  invoice   Invoice       @relation(fields: [invoiceId], references: [id])
+  amount    Float
+  method    PaymentMethod
+  paidAt    DateTime      @default(now())
+}
+
+model Notification {
+  id      String   @id @default(cuid())
+  userId  String
+  user    User     @relation(fields: [userId], references: [id])
+  type    String
+  message String
+  isRead  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+}

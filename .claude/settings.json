@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Edit(src/**)",
+      "Edit(prisma/**)",
+      "Edit(messages/**)",
+      "Edit(docs/**)",
+      "Bash(npm run *)",
+      "Bash(npx prisma *)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.local)",
+      "Edit(.env)",
+      "Bash(git push --force*)",
+      "Bash(rm -rf *)"
+    ]
+  },
+  "notes": "لا صلاحيات أوسع من المطلوب (Rule 30). أي صلاحية إضافية تحتاجها المهمة تُطلب صراحة بالمحادثة لا تُضاف هنا بشكل دائم بدون مراجعة."
+}
