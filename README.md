@@ -1,20 +1,19 @@
-# نظام إدارة المدارس — نسخة White-Label
-**School Management System — White-Label** · التصنيف: نظام / تطبيق
-> ملف تعريفي بالمشروع ونطاقه؛ هذا المستودع يحتوي على التوثيق فقط ولا يتضمن الشفرة المصدرية.
-> Project overview and scope; this repository contains documentation only, not implementation source code.
+# School Management System — White-Label Edition
+**School Management System — White-Label** · Category: System / Application
+> Project profile and scope; this repository contains documentation only and does not include implementation source code.
 
-## نبذة عن المشروع
-منصة مدرسية White-Label حقيقية، تُنشر كنسخة مستقلة كاملة بعلامة تجارية خاصة لكل مدرسة عميلة.
+## Project overview
+A real White-Label school platform, deployed as a full standalone branded instance for each client school.
 
-## أبرز النقاط
-- قالب نشر قابل للتكرار: تطبيق وقاعدة بيانات مستقلة لكل مدرسة
-- ثنائية اللغة عربي/إنجليزي بدعم RTL/LTR كامل عبر next-intl
-- وحدات أكاديمية وحضور ودرجات وفوترة مع لوحات تحكم حسب الدور
+## Highlights
+- Repeatable deployment template: separate application and database per school
+- Bilingual Arabic/English with full RTL/LTR support via next-intl
+- Academic, attendance, grades, and billing modules with role-based dashboards
 
-## الدور
-تصميم وتطوير منصة إدارة مدارس متعددة العملاء، مع دعم العلامة البيضاء واللغتين والوحدات الأكاديمية والإدارية.
+## Role
+Design and development of a multi-client school management platform with White-Label support, bilingual support, and academic and administrative modules.
 
-## التقنيات المستخدمة
+## Technologies used
 Next.js, TypeScript, Prisma, PostgreSQL, next-intl, Tailwind CSS, Zod
 
-التفاصيل في [TECHSTACK.md](./TECHSTACK.md).
+Details in [TECHSTACK.md](./TECHSTACK.md).

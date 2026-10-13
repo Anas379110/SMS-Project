@@ -1,4 +1,4 @@
-# 🛠️ التقنيات المستخدمة — نظام إدارة المدارس — نسخة White-Label
+# 🛠️ Technologies Used — School Management System — White-Label Edition
 - Next.js
 - TypeScript
 - Prisma
