@@ -1,42 +1,20 @@
-# نظام إدارة المدرسة — School Management System
+# نظام إدارة المدارس — نسخة White-Label
+**School Management System — White-Label** · التصنيف: نظام / تطبيق
+> ملف تعريفي بالمشروع ونطاقه؛ هذا المستودع يحتوي على التوثيق فقط ولا يتضمن الشفرة المصدرية.
+> Project overview and scope; this repository contains documentation only, not implementation source code.
 
-نسخة White-label مستقلة (True White-label) — راجع `PROJECT.md` و`ARCHITECTURE.md` بجذر المشروع للسياق الكامل قبل أي تطوير.
+## نبذة عن المشروع
+منصة مدرسية White-Label حقيقية، تُنشر كنسخة مستقلة كاملة بعلامة تجارية خاصة لكل مدرسة عميلة.
 
-## المتطلبات
-- Node.js 20+
-- قاعدة بيانات PostgreSQL (مثال: مشروع Supabase مجاني)
+## أبرز النقاط
+- قالب نشر قابل للتكرار: تطبيق وقاعدة بيانات مستقلة لكل مدرسة
+- ثنائية اللغة عربي/إنجليزي بدعم RTL/LTR كامل عبر next-intl
+- وحدات أكاديمية وحضور ودرجات وفوترة مع لوحات تحكم حسب الدور
 
-## التثبيت والتشغيل محلياً
+## الدور
+تصميم وتطوير منصة إدارة مدارس متعددة العملاء، مع دعم العلامة البيضاء واللغتين والوحدات الأكاديمية والإدارية.
 
-```bash
-npm install
-cp .env.example .env
-# املأ DATABASE_URL وNEXTAUTH_SECRET وSCHOOL_COUNTRY وبيانات بوابة الدفع المناسبة بـ .env
+## التقنيات المستخدمة
+Next.js, TypeScript, Prisma, PostgreSQL, next-intl, Tailwind CSS, Zod
 
-npx prisma migrate dev --name init
-npx prisma db seed   # ينشئ حساب Admin أولي (راجع الرسالة بالـ Console للبيانات)
-
-npm run dev
-# افتح http://localhost:3000 — ستُوجَّه تلقائياً لـ /ar/login أو /en/login
-```
-
-## الأوامر
-```
-npm run dev          تشغيل بيئة التطوير
-npm run build         بناء الإنتاج
-npm run test          تشغيل الاختبارات (Vitest)
-npm run lint           فحص جودة الكود
-npm run db:migrate    تطبيق Migration جديد
-npm run db:studio     واجهة إدارة بصرية لقاعدة البيانات
-```
-
-## الحالة الحالية (Increment 1 — Auth + Branding)
-✅ تسجيل دخول (Credentials + JWT + RBAC أساسي)
-✅ عرض علامة المدرسة التجارية ديناميكياً (شعار/اسم/لون) بصفحة الدخول
-✅ عربي/إنجليزي مع RTL/LTR كامل (next-intl)
-✅ اختبارات وحدة: كلمات المرور، تحقق تسجيل الدخول، RBAC
-
-**لم يُبدأ بعد:** إدارة الطلاب/الفصول، الحضور، الدرجات، الجدول، المالي — راجع `STATUS.md` بجذر المشروع للترتيب والتفاصيل الكاملة، و`docs/project/SDLC.md` لترتيب الـ Increments القادمة.
-
-## قبل أي Commit
-Hook أمني (`.claude/hooks/pre-commit-secrets-check.sh`) يمنع رفع أي `.env` أو مفتاح API صريح. لا تتجاوزه يدوياً.
+التفاصيل في [TECHSTACK.md](./TECHSTACK.md).
